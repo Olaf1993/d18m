@@ -27,7 +27,7 @@ shinyApp(
     
     # without Shinyjs reset() does not work...
     useShinyjs(),
-    DT::dataTableOutput("responses", width = 500), tags$hr(),
+    
     #textInput("Datum", "Datum", ""),
     dateInput("Datum","Datum",Sys.Date(),"2000-01-01",Sys.Date(),format = "dd.mm.yyyy",NULL, weekstart = 0, language = "de", width= NULL ),
     textInput("Liter","Liter",""),
@@ -50,10 +50,15 @@ shinyApp(
           verbatimTextOutput("info")
         )
         
+     
       
-        
-      
+    ),
+  tabsetPanel(
+    tabPanel("Datenbanken",
+             DT::dataTableOutput("responses", width = 500), tags$hr()
     )
+  )
+  
   ),
   server = function(input, output, session) {
     

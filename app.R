@@ -25,64 +25,91 @@ shinyApp(
     
     titlePanel("d18m"),
     
+   
+    
     # without Shinyjs reset() does not work...
     useShinyjs(),
     
-    #textInput("Datum", "Datum", ""),
-    dateInput("Datum","Datum",Sys.Date(),"2000-01-01",Sys.Date(),format = "dd.mm.yyyy",NULL, weekstart = 0, language = "de", width= NULL ),
-    textInput("Liter","Liter",""),
-    #checkboxInput("lit", "I've built a Shiny app in R before", FALSE),
-    textInput("Preis", "Gesamtpreis", ""),
-    textInput("DeutschlandwPproL","DeutschlandwPproL",""),
-    actionButton("submit", "Speichern"),
     
-    tabsetPanel(
-      #plot, do not know what plotclick means
+    navbarPage("Menu",
+      tabPanel("Eingabe",
+               mainPanel("mainpanel",
       
+                 #textInput("Datum", "Datum", ""),
+                 dateInput("Datum","Datum",Sys.Date(),"2000-01-01",Sys.Date(),format = "dd.mm.yyyy",NULL, weekstart = 0, language = "de", width= NULL ),
+                 textInput("Liter","Liter",""),
+                 #checkboxInput("lit", "I've built a Shiny app in R before", FALSE),
+                 textInput("Preis", "Gesamtpreis", ""),
+                 textInput("DeutschlandwPproL","DeutschlandwPproL","0"),
+                 actionButton("submit", "Speichern")
+                 
+                 
+                 
+                 
+               )    
+      ) ,
       
-      
-      tabPanel("Preis pro Liter",
-               plotOutput("dbplot" , 
-                          click = "plot_click",
-                          dblclick = "plot_dbclick",
-                          hover = "plot_hover",
-                          brush = "plot_brush"
+      tabPanel("Datenbank",
+               tabsetPanel(
+                 tabPanel("Tankdaten",
+                          DT::dataTableOutput("responses", width = 500), tags$hr()
+                 )
+               )
                ),
-               verbatimTextOutput("info")
-      ),
-      tabPanel("Preis pro Liter deutschlandweit",
-               plotOutput("dbplot2" , 
-                          click = "plot_click",
-                          dblclick = "plot_dbclick",
-                          hover = "plot_hover",
-                          brush = "plot_brush"
-               ),
-               verbatimTextOutput("info2")
+      tabPanel("Charts",
+               
+                 #plot, do not know what plotclick means
+                 
+            tabsetPanel(
+                 
+                 tabPanel("Preis pro Liter",
+                          plotOutput("dbplot" , 
+                                     click = "plot_click",
+                                     dblclick = "plot_dbclick",
+                                     hover = "plot_hover",
+                                     brush = "plot_brush"
+                          ),
+                          verbatimTextOutput("info")
+                 ),
+                 tabPanel("Preis pro Liter deutschlandweit",
+                          plotOutput("dbplot2" , 
+                                     click = "plot_click",
+                                     dblclick = "plot_dbclick",
+                                     hover = "plot_hover",
+                                     brush = "plot_brush"
+                          ),
+                          verbatimTextOutput("info2")
+                 )
+                 
+            )   
+               
+                 
+        ),
+      navbarMenu("More",
+          tabPanel("About",
+                   helpText("2018 by hitbear"),
+                   HTML("Si tacuisses, philosophus mansisses.")
+          )   
+         
       )
       
       
-    ),
-    tabsetPanel(
-      tabPanel("Tankdaten",
-               DT::dataTableOutput("responses", width = 500), tags$hr()
-      )
     )
     
+      
+
   ),
   server = function(input, output, session) {
     
+    # Connect to the database
+    db <- dbConnect(SQLite(), sqlitePath)
+    # Construct the fetching query
+    query <- paste0("SELECT * FROM tbl1")
+    # Submit the fetch query and disconnect
+    data <- dbGetQuery(db, query)
+    dbDisconnect(db)
+    
     output$dbplot <- renderPlot({
-      
-      # Connect to the database
-      db <- dbConnect(SQLite(), sqlitePath)
-      # Construct the fetching query
-      query <- paste0("SELECT * FROM tbl1")
-      # Submit the fetch query and disconnect
-      data <- dbGetQuery(db, query)
-      dbDisconnect(db)
-      #pop <- data
-      #names(pop) <- data
-      # plot(as.matrix(data$Liter))
       data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
@@ -91,16 +118,6 @@ shinyApp(
     })
     
     output$dbplot2 <- renderPlot({
-      # Connect to the database
-      db <- dbConnect(SQLite(), sqlitePath)
-      # Construct the fetching query
-      query <- paste0("SELECT * FROM tbl1")
-      # Submit the fetch query and disconnect
-      data <- dbGetQuery(db, query)
-      dbDisconnect(db)
-      #pop <- data
-      #names(pop) <- data
-      # plot(as.matrix(data$Liter))
       data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = data$DeutschlandwPproL)

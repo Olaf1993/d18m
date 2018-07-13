@@ -13,11 +13,11 @@ library(shiny)
 library(shinyjs)
 library(ggplot2)
 
-sqlitePath <- "/home/mint/Dokumente/d18m/DBs/diesel.db"
+sqlitePath <- "/home/mint/Dokumente/d18m/db/diesel.db"
 table <- "tbl1"
 
 # Define the fields we want to save from the form
-fields <- c("Datum", "Liter", "Preis")
+fields <- c("Datum", "Liter", "Preis","DeutschlandwPproL")
 
 # Shiny app with 3 fields that the user can submit data for
 shinyApp(
@@ -33,37 +33,46 @@ shinyApp(
     textInput("Liter","Liter",""),
     #checkboxInput("lit", "I've built a Shiny app in R before", FALSE),
     textInput("Preis", "Gesamtpreis", ""),
+    textInput("DeutschlandwPproL","DeutschlandwPproL",""),
     actionButton("submit", "Speichern"),
     
     tabsetPanel(
-  #plot, do not know what plotclick means
+      #plot, do not know what plotclick means
       
-     
       
-        tabPanel("Preis pro Liter",
-          plotOutput("dbplot" , 
-                     click = "plot_click",
-                     dblclick = "plot_dbclick",
-                     hover = "plot_hover",
-                     brush = "plot_brush"
-                     ),
-          verbatimTextOutput("info")
-        )
-        
-     
+      
+      tabPanel("Preis pro Liter",
+               plotOutput("dbplot" , 
+                          click = "plot_click",
+                          dblclick = "plot_dbclick",
+                          hover = "plot_hover",
+                          brush = "plot_brush"
+               ),
+               verbatimTextOutput("info")
+      ),
+      tabPanel("Preis pro Liter deutschlandweit",
+               plotOutput("dbplot2" , 
+                          click = "plot_click",
+                          dblclick = "plot_dbclick",
+                          hover = "plot_hover",
+                          brush = "plot_brush"
+               ),
+               verbatimTextOutput("info2")
+      )
+      
       
     ),
-  tabsetPanel(
-    tabPanel("Datenbanken",
-             DT::dataTableOutput("responses", width = 500), tags$hr()
+    tabsetPanel(
+      tabPanel("Tankdaten",
+               DT::dataTableOutput("responses", width = 500), tags$hr()
+      )
     )
-  )
-  
+    
   ),
   server = function(input, output, session) {
     
     output$dbplot <- renderPlot({
-
+      
       # Connect to the database
       db <- dbConnect(SQLite(), sqlitePath)
       # Construct the fetching query
@@ -73,12 +82,29 @@ shinyApp(
       dbDisconnect(db)
       #pop <- data
       #names(pop) <- data
-     # plot(as.matrix(data$Liter))
+      # plot(as.matrix(data$Liter))
       data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
       ggplot(d,aes(x=Datum, y= Preis )) + geom_line() + geom_point() 
       
+    })
+    
+    output$dbplot2 <- renderPlot({
+      # Connect to the database
+      db <- dbConnect(SQLite(), sqlitePath)
+      # Construct the fetching query
+      query <- paste0("SELECT * FROM tbl1")
+      # Submit the fetch query and disconnect
+      data <- dbGetQuery(db, query)
+      dbDisconnect(db)
+      #pop <- data
+      #names(pop) <- data
+      # plot(as.matrix(data$Liter))
+      data2 <- data[,1]
+      #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
+      d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = data$DeutschlandwPproL)
+      ggplot(d,aes(x=Datum, y= Preis )) + geom_line() + geom_point() 
     })
     
     output$info <- renderText({
@@ -99,9 +125,9 @@ shinyApp(
         "brush: ", xy_str(input$plot_brush)
       )
     })
-  
- 
-
+    
+    
+    
     # Whenever a field is filled, aggregate all form data
     formData <- reactive({
       #data <- loadData()
@@ -111,32 +137,39 @@ shinyApp(
     
     # When the Submit button is clicked, save the form data
     observeEvent(input$submit, {
-     saveData(formData())
+      saveData(formData())
+      
+      db <- dbConnect(SQLite(), sqlitePath)
+      # Construct the fetching query
+      query <- paste0("SELECT * FROM tbl1")
+      # Submit the fetch query and disconnect
+      data <- dbGetQuery(db, query)
+      dbDisconnect(db)
+      
+      
       
       output$dbplot <- renderPlot({
-        
-        # Connect to the database
-        db <- dbConnect(SQLite(), sqlitePath)
-        # Construct the fetching query
-        query <- paste0("SELECT * FROM tbl1")
-        # Submit the fetch query and disconnect
-        data <- dbGetQuery(db, query)
-        dbDisconnect(db)
-        #pop <- data
-        #names(pop) <- data
-        # plot(as.matrix(data$Liter))
         data2 <- data[,1]
         #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
         d <- data.frame(Datum = data$Datum, Preis = (data$Preis / data$Liter))
         ggplot(d,aes(x=as.Date(data$Datum, origin = "1970-01-01"), y= Preis)) + geom_line() + geom_point()
         
       })
-    
+      
+      output$dbplot2 <- renderPlot({
+        data2 <- data[,1]
+        #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
+        d <- data.frame(Datum = data$Datum, Preis = data$DeutschlandwPproL)
+        ggplot(d,aes(x=as.Date(data$Datum, origin = "1970-01-01"), y= Preis)) + geom_line() + geom_point()
+        
+      })
+      
       #set fields to defaul values
-     reset("Datum")
-     reset("Liter")
-     reset("Preis")
-     
+      reset("Datum")
+      reset("Liter")
+      reset("Preis")
+      reset("DeutschlandwPproL")
+      
     })
     
     # Show the previous responses
@@ -146,8 +179,8 @@ shinyApp(
       loadData()
     }) 
     
-
-
+    
+    
     
     saveData <- function(data) {
       # Connect to the database
@@ -175,7 +208,7 @@ shinyApp(
       data
     }
     
-
+    
     
   }
 )
@@ -183,4 +216,3 @@ shinyApp(
 
 # Run the application 
 #shinyApp(ui = ui, server = server)
-

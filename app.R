@@ -42,9 +42,7 @@ shinyApp(
                  textInput("Preis", "Gesamtpreis", ""),
                  textInput("DeutschlandwPproL","DeutschlandwPproL","0"),
                  actionButton("submit", "Speichern")
-                 
-                 
-                 
+      
                  
                )    
       ) ,
@@ -58,12 +56,22 @@ shinyApp(
                ),
       tabPanel("Charts",
                
-                 #plot, do not know what plotclick means
-                 
-            tabsetPanel(
-                 
+            checkboxGroupInput("checkGroup",label=h3("Checkbox group"),choices= list("Preis pro Liter"="dbplot","Preis pro Liter deutschlandweit"="dbplot2"),selected=1),
+            #hr(),
+            #fluidRow(column(3,verbatimTextOutput("value"))),
+            
+           # plotOutput("dbplot",
+           #            click = "plot_click",
+           #            dblclick = "plot_dbclick",
+           #            hover = "plot_hover",
+           #            brush = "plot_brush"
+           #  ),
+           # verbatimTextOutput("info3")
+           #     
+             tabsetPanel(
+
                  tabPanel("Preis pro Liter",
-                          plotOutput("dbplot" , 
+                          plotOutput("dbplot" ,
                                      click = "plot_click",
                                      dblclick = "plot_dbclick",
                                      hover = "plot_hover",
@@ -72,7 +80,7 @@ shinyApp(
                           verbatimTextOutput("info")
                  ),
                  tabPanel("Preis pro Liter deutschlandweit",
-                          plotOutput("dbplot2" , 
+                          plotOutput("dbplot2" ,
                                      click = "plot_click",
                                      dblclick = "plot_dbclick",
                                      hover = "plot_hover",
@@ -80,11 +88,16 @@ shinyApp(
                           ),
                           verbatimTextOutput("info2")
                  )
-                 
-            )   
-               
+
+            )
+
                  
         ),
+      
+      tabPanel("Prognose"
+               
+      ),
+      
       navbarMenu("More",
           tabPanel("About",
                    helpText("2018 by hitbear"),

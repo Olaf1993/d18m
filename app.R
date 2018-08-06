@@ -25,92 +25,104 @@ shinyApp(
     
     titlePanel("d18m"),
     
-   
+    
     
     # without Shinyjs reset() does not work...
     useShinyjs(),
     
     
     navbarPage("Menu",
-      tabPanel("Eingabe",
-               mainPanel("mainpanel",
-      
-                 #textInput("Datum", "Datum", ""),
-                 dateInput("Datum","Datum",Sys.Date(),"2000-01-01",Sys.Date(),format = "dd.mm.yyyy",NULL, weekstart = 0, language = "de", width= NULL ),
-                 textInput("Liter","Liter",""),
-                 #checkboxInput("lit", "I've built a Shiny app in R before", FALSE),
-                 textInput("Preis", "Gesamtpreis", ""),
-                 textInput("DeutschlandwPproL","DeutschlandwPproL","0"),
-                 actionButton("submit", "Speichern")
-      
-                 
-               )    
-      ) ,
-      
-      tabPanel("Datenbank",
-               tabsetPanel(
-                 tabPanel("Tankdaten",
-                          DT::dataTableOutput("responses", width = 500), tags$hr()
-                 )
-               )
+               tabPanel("Eingabe",
+                        mainPanel("Geben Sie Daten ein.",
+                                  
+                                  #textInput("Datum", "Datum", ""),
+                                  dateInput("Datum","Datum",Sys.Date(),"2000-01-01",Sys.Date(),format = "dd.mm.yyyy",NULL, weekstart = 0, language = "de", width= NULL ),
+                                  textInput("Liter","Liter",""),
+                                  #checkboxInput("lit", "I've built a Shiny app in R before", FALSE),
+                                  textInput("Preis", "Gesamtpreis", ""),
+                                  textInput("DeutschlandwPproL","DeutschlandwPproL","0"),
+                                  actionButton("submit", "Speichern")
+                                  
+                                  
+                        )    
+               ) ,
+               
+               tabPanel("Datenbank",
+                        tabsetPanel(
+                          tabPanel("Tankdaten",
+                                   DT::dataTableOutput("responses", width = 500), tags$hr()
+                          )
+                        )
                ),
-      tabPanel("Charts",
-               
-            checkboxGroupInput("checkGroup",label=h3("Checkbox group"),choices= list("Preis pro Liter"="dbplot","Preis pro Liter deutschlandweit"="dbplot2"),selected=1),
-            #hr(),
-            #fluidRow(column(3,verbatimTextOutput("value"))),
-            
-           # plotOutput("dbplot",
-           #            click = "plot_click",
-           #            dblclick = "plot_dbclick",
-           #            hover = "plot_hover",
-           #            brush = "plot_brush"
-           #  ),
-           # verbatimTextOutput("info3")
-           #     
-             tabsetPanel(
-
-                 tabPanel("Preis pro Liter",
-                          plotOutput("dbplot" ,
-                                     click = "plot_click",
-                                     dblclick = "plot_dbclick",
-                                     hover = "plot_hover",
-                                     brush = "plot_brush"
+               tabPanel("Charts",
+                        
+                        #checkboxGroupInput("checkGroup",label=h3("Checkbox group"),choices= list("Preis pro Liter"="dbplot","Preis pro Liter deutschlandweit"="dbplot2"),selected=1),
+                        #hr(),
+                        #fluidRow(column(3,verbatimTextOutput("value"))),
+                        
+                        # plotOutput("dbplot",
+                        #            click = "plot_click",
+                        #            dblclick = "plot_dbclick",
+                        #            hover = "plot_hover",
+                        #            brush = "plot_brush"
+                        #  ),
+                        # verbatimTextOutput("info3")
+                        #     
+                        tabsetPanel(
+                          
+                          tabPanel("Preis pro Liter",
+                                   plotOutput("dbplot" ,
+                                              click = "plot_click",
+                                              dblclick = "plot_dbclick",
+                                              hover = "plot_hover",
+                                              brush = "plot_brush"
+                                   ),
+                                   verbatimTextOutput("info_dbplot")
+                                   
+                                   
                           ),
-                          verbatimTextOutput("info")
-                 ),
-                 tabPanel("Preis pro Liter deutschlandweit",
-                          plotOutput("dbplot2" ,
-                                     click = "plot_click",
-                                     dblclick = "plot_dbclick",
-                                     hover = "plot_hover",
-                                     brush = "plot_brush"
+                          tabPanel("Preis pro Liter deutschlandweit",
+                                   plotOutput("dbplot2" ,
+                                              click = "plot_click",
+                                              dblclick = "plot_dbclick",
+                                              hover = "plot_hover",
+                                              brush = "plot_brush"
+                                   ),
+                                   verbatimTextOutput("info2")
                           ),
-                          verbatimTextOutput("info2")
-                 )
-
-            )
-
-                 
-        ),
-      
-      tabPanel("Prognose"
+                          
+                          tabPanel("Vergleich",
+                                   plotOutput("dbplot3" ,
+                                              click = "plot_click",
+                                              dblclick = "plot_dbclick",
+                                              hover = "plot_hover",
+                                              brush = "plot_brush"
+                                   ),
+                                   verbatimTextOutput("info3")
+                          )
+                          
+                        )
+                        
+                        
+               ),
                
-      ),
-      
-      navbarMenu("More",
-          tabPanel("About",
-                   helpText("2018 by hitbear"),
-                   HTML("Si tacuisses, philosophus mansisses.")
-          )   
-         
-      )
-      
-      
+               tabPanel("Prognose"
+                        
+               ),
+               
+               navbarMenu("More",
+                          tabPanel("About",
+                                   helpText("2018 by hitbear"),
+                                   HTML("Si tacuisses, philosophus mansisses.")
+                          )   
+                          
+               )
+               
+               
     )
     
-      
-
+    
+    
   ),
   server = function(input, output, session) {
     
@@ -126,7 +138,7 @@ shinyApp(
       data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
-      ggplot(d,aes(x=Datum, y= Preis )) + geom_line() + geom_point() 
+      ggplot(d,aes(x=Datum)) + geom_line(aes(y = Preis)) + geom_point(aes(y=Preis))
       
     })
     
@@ -137,25 +149,36 @@ shinyApp(
       ggplot(d,aes(x=Datum, y= Preis )) + geom_line() + geom_point() 
     })
     
-    output$info <- renderText({
-      xy_str <- function(e){
-        if(is.null(e)) return ("NULL\n")
-        paste0 ("x=", round(e$x,1), "y=", round(e$y,1),"\n")
-      }
-      xy_range_str <- function(e){
-        if (is.null(e)) return ("NULL\n")
-        paste0("xmin=", round(e$xmin,1), "xmax=", round(e$xmax,1),
-               "ymin=", round(e$ymin,1), " ymax=", round(e$ymax,1))
-      }
-      
-      paste0(
-        "click: ", xy_str(input$plot_click),
-        "dblclick: ", xy_str(input$plot_dblclick),
-        "hover: ", xy_str(input$plot_hover),
-        "brush: ", xy_str(input$plot_brush)
-      )
-    })
+    output$dbplot3 <- renderPlot({
+      data2 <- data[,1]
+      #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
+      d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
+      ggplot(d,aes(x=Datum)) + geom_line(aes(y= Preis),color= "blue") + geom_line(aes(y = data$DeutschlandwPproL),color="red")
+    })   
     
+    # output$info <- renderText({
+    #   xy_str <- function(e){
+    #     if(is.null(e)) return ("NULL\n")
+    #     paste0 ("x=", round(e$x,1), "y=", round(e$y,1),"\n")
+    #   }
+    #   xy_range_str <- function(e){
+    #     if (is.null(e)) return ("NULL\n")
+    #     paste0("xmin=", round(e$xmin,1), "xmax=", round(e$xmax,1),
+    #            "ymin=", round(e$ymin,1), " ymax=", round(e$ymax,1))
+    #   }
+    #   
+    #   paste0(
+    #     "click: ", xy_str(input$plot_click),
+    #     "dblclick: ", xy_str(input$plot_dblclick),
+    #     "hover: ", xy_str(input$plot_hover),
+    #     "brush: ", xy_str(input$plot_brush)
+    #   )
+    # })
+    
+    output$info_dbplot <- renderText(
+      median((data$Preis / data$Liter))
+    )
+     
     
     
     # Whenever a field is filled, aggregate all form data
@@ -193,6 +216,13 @@ shinyApp(
         ggplot(d,aes(x=as.Date(data$Datum, origin = "1970-01-01"), y= Preis)) + geom_line() + geom_point()
         
       })
+      
+      output$dbplot3 <- renderPlot({
+        data2 <- data[,1]
+        #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
+        d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
+        ggplot(d,aes(x=Datum)) + geom_line(aes(y= Preis),color= "blue") + geom_line(aes(y = data$DeutschlandwPproL),color="red")
+      })  
       
       #set fields to defaul values
       reset("Datum")
@@ -245,4 +275,4 @@ shinyApp(
 
 
 # Run the application 
-#shinyApp(ui = ui, server = server)
+#shinyApp(ui = ui, server = serve

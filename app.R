@@ -13,6 +13,7 @@ library(shiny)
 library(shinyjs)
 library(ggplot2)
 
+
 sqlitePath <- "/home/mint/Dokumente/d18m/db/diesel.db"
 table <- "tbl1"
 
@@ -77,7 +78,7 @@ shinyApp(
                                               hover = "plot_hover",
                                               brush = "plot_brush"
                                    ),
-                                   verbatimTextOutput("info_dbplot")
+                                   verbatimTextOutput("info")
                                    
                                    
                           ),
@@ -99,7 +100,13 @@ shinyApp(
                                               brush = "plot_brush"
                                    ),
                                    verbatimTextOutput("info3")
+                          ),
+                          tabPanel("Boxplot",
+                                   plotOutput("boxplot"
+                                              ),
+                                  verbatimTextOutput("infos_boxplot")
                           )
+                                   
                           
                         )
                         
@@ -156,6 +163,15 @@ shinyApp(
       ggplot(d,aes(x=Datum)) + geom_line(aes(y= Preis),color= "blue") + geom_line(aes(y = data$DeutschlandwPproL),color="red")
     })   
     
+    output$boxplot <- renderPlot({
+      data2 <- data[,1]
+      d1 <- data.frame(X="Preis pro Liter", Preis = (data$Preis / data$Liter))
+      d2 <- data.frame(X="deutschlandweit", Preis = data$DeutschlandwPproL)
+      d <- rbind(d1,d2)
+      ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Preis, fill = X)) 
+
+    })
+    
     # output$info <- renderText({
     #   xy_str <- function(e){
     #     if(is.null(e)) return ("NULL\n")
@@ -175,7 +191,7 @@ shinyApp(
     #   )
     # })
     
-    output$info_dbplot <- renderText(
+    output$infos_boxplot <- renderText(
       median((data$Preis / data$Liter))
     )
      
@@ -223,6 +239,15 @@ shinyApp(
         d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
         ggplot(d,aes(x=Datum)) + geom_line(aes(y= Preis),color= "blue") + geom_line(aes(y = data$DeutschlandwPproL),color="red")
       })  
+      
+      output$boxplot <- renderPlot({
+        data2 <- data[,1]
+        d1 <- data.frame(X="Preis pro Liter", Preis = (data$Preis / data$Liter))
+        d2 <- data.frame(X="deutschlandweit", Preis = data$DeutschlandwPproL)
+        d <- rbind(d1,d2)
+        ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Preis, fill = X)) 
+        
+      })
       
       #set fields to defaul values
       reset("Datum")

@@ -12,7 +12,7 @@ library(RSQLite)
 library(shiny)
 library(shinyjs)
 library(ggplot2)
-
+library(shinydashboard)
 
 sqlitePath <- "/home/mint/Dokumente/d18m/db/diesel.db"
 table <- "tbl1"
@@ -103,12 +103,17 @@ shinyApp(
                           ),
                           tabPanel("Boxplot",
                                    plotOutput("boxplot"
-                                              ),
-                                  verbatimTextOutput("infos_boxplot")
+                                              )
+                                 # verbatimTextOutput("infos_boxplot")
+                                  
                           )
-                                   
-                          
-                        )
+                        ),
+                          fluidRow(
+                          infoBox("Info", , icon = icon("credit-card"), fill=TRUE),
+                          infoBoxOutput("infobox1"),
+                          infoBoxOutput("gesamtpreis")
+                          )
+                        
                         
                         
                ),
@@ -171,6 +176,20 @@ shinyApp(
       ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Preis, fill = X)) 
 
     })
+    
+    output$infobox1 <- renderInfoBox({
+      infoBox(
+        "Mittelwert", paste0(mean(data$Preis/data$Liter),"€"), 
+        color = "yellow", fill = TRUE
+      )
+   })
+    output$gesamtpreis <- renderInfoBox({
+      infoBox(
+        "Gesamtkosten", paste0(sum(data$Preis),"€"),
+        color = "purple", fill = TRUE
+      )
+    })
+    
     
     # output$info <- renderText({
     #   xy_str <- function(e){
@@ -247,6 +266,19 @@ shinyApp(
         d <- rbind(d1,d2)
         ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Preis, fill = X)) 
         
+      })
+      
+      output$infobox1 <- renderInfoBox({
+        infoBox(
+          "Mittelwert", paste0(mean(data$Preis/data$Liter),"€"), 
+          color = "yellow", fill = TRUE
+        )
+      })
+      output$gesamtpreis <- renderInfoBox({
+        infoBox(
+          "Gesamtkosten", paste0(sum(data$Preis),"€"),
+          color = "purple", fill = TRUE
+        )
       })
       
       #set fields to defaul values

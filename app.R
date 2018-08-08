@@ -18,7 +18,7 @@ sqlitePath <- "/home/mint/Dokumente/d18m/db/diesel.db"
 table <- "tbl1"
 
 # Define the fields we want to save from the form
-fields <- c("Datum", "Liter", "Preis","DeutschlandwPproL")
+fields <- c("Datum", "Liter", "Preis","DeutschlandwPproL", "Km")
 
 # Shiny app with 3 fields that the user can submit data for
 shinyApp(
@@ -41,7 +41,8 @@ shinyApp(
                                   textInput("Liter","Liter",""),
                                   #checkboxInput("lit", "I've built a Shiny app in R before", FALSE),
                                   textInput("Preis", "Gesamtpreis", ""),
-                                  textInput("DeutschlandwPproL","DeutschlandwPproL","0"),
+                                  textInput("DeutschlandwPproL","Deutschlandweiter Preis pro Liter","0"),
+                                  textInput("Km","Kilometerstand", ""),
                                   actionButton("submit", "Speichern")
                                   
                                   
@@ -118,8 +119,15 @@ shinyApp(
                         
                ),
                
-               tabPanel("Prognose"
-                        
+               tabPanel("Verbrauch",
+                        tabsetPanel(
+                          tabPanel("Verlauf",
+                            plotOutput("verbrauchplot")
+                            ),
+                          tabPanel("Boxplot",
+                            plotOutput("boxplot_verbrauch")
+                            )
+                        )   
                ),
                
                navbarMenu("More",
@@ -155,21 +163,21 @@ shinyApp(
     })
     
     output$dbplot2 <- renderPlot({
-      data2 <- data[,1]
+      #data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = data$DeutschlandwPproL)
       ggplot(d,aes(x=Datum, y= Preis )) + geom_line() + geom_point() 
     })
     
     output$dbplot3 <- renderPlot({
-      data2 <- data[,1]
+      #data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
       ggplot(d,aes(x=Datum)) + geom_line(aes(y= Preis),color= "blue") + geom_line(aes(y = data$DeutschlandwPproL),color="red")
     })   
     
     output$boxplot <- renderPlot({
-      data2 <- data[,1]
+      #data2 <- data[,1]
       d1 <- data.frame(X="Preis pro Liter", Preis = (data$Preis / data$Liter))
       d2 <- data.frame(X="deutschlandweit", Preis = data$DeutschlandwPproL)
       d <- rbind(d1,d2)
@@ -190,6 +198,23 @@ shinyApp(
       )
     })
     
+    output$verbrauchplot <- renderPlot({
+      v <- NULL
+      for ( i in c(1:length(data$Liter))){
+        v <- append(v,100*sum(data$Liter[1:i])/data$Km[i])
+      }
+      d <- data.frame(Kilometer = data$Km, Verbrauch= v)
+      ggplot(d,aes(x = Kilometer)) + geom_line(aes(y = Verbrauch),color="blue") + geom_point(aes(y = Verbrauch),color="red")
+    })
+    
+    output$boxplot_verbrauch <- renderPlot({
+      v <- NULL
+      for ( i in c(1:length(data$Liter))){
+        v <- append(v,100*sum(data$Liter[1:i])/data$Km[i])
+      }
+      d <- data.frame(X = "Verbrauch", Verbrauch = v)
+      ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Verbrauch, fill = X)) 
+    })
     
     # output$info <- renderText({
     #   xy_str <- function(e){
@@ -279,6 +304,25 @@ shinyApp(
           "Gesamtkosten", paste0(sum(data$Preis),"€"),
           color = "purple", fill = TRUE
         )
+      })
+      
+      
+      output$verbrauchplot <- renderPlot({
+        v <- NULL
+        for ( i in c(1:length(data$Liter))){
+          v <- append(v,100*sum(data$Liter[1:i])/data$Km[i])
+        }
+        d <- data.frame(Kilometer = data$Km, Verbrauch= v)
+        ggplot(d,aes(x = Kilometer)) + geom_line(aes(y = Verbrauch),color="blue") + geom_point(aes(y = Verbrauch),color="red")
+      })
+      
+      output$boxplot_verbrauch <- renderPlot({
+        v <- NULL
+        for ( i in c(1:length(data$Liter))){
+          v <- append(v,100*sum(data$Liter[1:i])/data$Km[i])
+        }
+        d <- data.frame(X = "Verbrauch", Verbrauch = v)
+        ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Verbrauch, fill = X)) 
       })
       
       #set fields to defaul values

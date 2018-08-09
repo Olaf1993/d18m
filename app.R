@@ -130,6 +130,15 @@ shinyApp(
                         )   
                ),
                
+               tabPanel("weitere Kosten",
+                        tabsetPanel(
+                          tabPanel("Diagramm",
+                                   plotOutput("kostenkreisdiagramm"),
+                                   plotOutput("kostenkreisdiagrammdiesel")
+                                   )
+                          
+                        )
+                ),
                navbarMenu("More",
                           tabPanel("About",
                                    helpText("2018 by hitbear"),
@@ -152,6 +161,10 @@ shinyApp(
     query <- paste0("SELECT * FROM tbl1")
     # Submit the fetch query and disconnect
     data <- dbGetQuery(db, query)
+    
+    query2 <- paste0("SELECT * FROM tbl2")
+    data_tbl2 <- dbGetQuery(db, query2)
+    
     dbDisconnect(db)
     
     output$dbplot <- renderPlot({
@@ -216,6 +229,21 @@ shinyApp(
       ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Verbrauch, fill = X)) 
     })
     
+    output$kostenkreisdiagramm <- renderPlot({
+      kost <- data_tbl2$Art
+      eur <- data_tbl2$Preis
+      pie(eur,kost,main="Kosten")
+    })
+    
+    output$kostenkreisdiagrammdiesel <- renderPlot({
+      kost <- data_tbl2$Art
+      eur <- data_tbl2$Preis
+      kost <- append(kost,"Diesel")
+      eur <- append(eur,sum(data$Preis))
+      pie(eur,kost,main="Kosten inklusive Tankkosten")
+    })
+    
+    
     # output$info <- renderText({
     #   xy_str <- function(e){
     #     if(is.null(e)) return ("NULL\n")
@@ -257,6 +285,10 @@ shinyApp(
       query <- paste0("SELECT * FROM tbl1")
       # Submit the fetch query and disconnect
       data <- dbGetQuery(db, query)
+      
+      query2 <- paste0("SELECT * FROM tbl2")
+      data_tbl2 <- dbGetQuery(db, query2)
+      
       dbDisconnect(db)
       
       
@@ -325,6 +357,20 @@ shinyApp(
         ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Verbrauch, fill = X)) 
       })
       
+      output$kostenkreisdiagramm <- renderPlot({
+        kost <- data_tbl2$Art
+        eur <- data_tbl2$Preis
+        pie(eur,kost,main="Kosten")
+      })
+      
+      output$kostenkreisdiagrammdiesel <- renderPlot({
+        kost <- data_tbl2$Art
+        eur <- data_tbl2$Preis
+        kost <- append(kost,"Diesel")
+        eur <- append(eur,sum(data$Preis))
+        pie(eur,kost,main="Kosten inklusive Tankkosten")
+      })
+      
       #set fields to defaul values
       reset("Datum")
       reset("Liter")
@@ -340,8 +386,8 @@ shinyApp(
       loadData()
     }) 
     
-    
-    
+
+
     
     saveData <- function(data) {
       # Connect to the database

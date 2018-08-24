@@ -14,7 +14,7 @@ library(shinyjs)
 library(ggplot2)
 library(shinydashboard)
 
-sqlitePath <- "/home/mint/Dokumente/d18m/db/diesel.db"
+sqlitePath <- "db/diesel.db"
 table <- "tbl1"
 
 # Define the fields we want to save from the form
@@ -36,6 +36,8 @@ shinyApp(
                tabPanel("Eingabe",
                         mainPanel("Geben Sie Daten ein.",
                                   
+                                  
+                                  
                                   #textInput("Datum", "Datum", ""),
                                   dateInput("Datum","Datum",Sys.Date(),"2000-01-01",Sys.Date(),format = "dd.mm.yyyy",NULL, weekstart = 0, language = "de", width= NULL ),
                                   textInput("Liter","Liter",""),
@@ -52,11 +54,14 @@ shinyApp(
                tabPanel("Datenbank",
                         tabsetPanel(
                           tabPanel("Tankdaten",
+                                 
                                    DT::dataTableOutput("responses", width = 500), tags$hr()
                           )
                         )
                ),
                tabPanel("Charts",
+                        
+                        
                         
                         #checkboxGroupInput("checkGroup",label=h3("Checkbox group"),choices= list("Preis pro Liter"="dbplot","Preis pro Liter deutschlandweit"="dbplot2"),selected=1),
                         #hr(),
@@ -101,6 +106,16 @@ shinyApp(
                                               brush = "plot_brush"
                                    ),
                                    verbatimTextOutput("info3")
+                          ),
+                          tabPanel("Differenz ",
+                                   plotOutput("differenz" ,
+                                              click = "plot_click",
+                                              dblclick = "plot_dbclick",
+                                              hover = "plot_hover",
+                                              brush = "plot_brush"
+                                   ),
+                                   "Was hätte ich gespart, wenn ich immer den deutschlandweiten Preis gezahlt hätte?",
+                                   verbatimTextOutput("differenztext")
                           ),
                           tabPanel("Boxplot",
                                    plotOutput("boxplot"
@@ -167,11 +182,27 @@ shinyApp(
     
     dbDisconnect(db)
     
+    
+    output$differenztext <- renderText({
+      
+      
+     a <-  sum(data$Preis)-sum(data$DeutschlandwPproL * data$Liter) 
+     if (a < 0){
+       b <- -1*a
+      paste ("Nichts, ich hätte soviel mehr bezahlt:", b)
+     }
+     else 
+     {
+       paste("Einsparung",a)
+     }
+     
+    })
+    
     output$dbplot <- renderPlot({
       data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
-      ggplot(d,aes(x=Datum)) + geom_line(aes(y = Preis)) + geom_point(aes(y=Preis))
+      ggplot(d,aes(x=Datum)) + geom_point(aes(y=Preis)) + geom_smooth(aes(y = Preis))
       
     })
     
@@ -179,14 +210,14 @@ shinyApp(
       #data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = data$DeutschlandwPproL)
-      ggplot(d,aes(x=Datum, y= Preis )) + geom_line() + geom_point() 
+      ggplot(d,aes(x=Datum, y= Preis )) + geom_smooth(aes(y = Preis)) + geom_point() 
     })
     
     output$dbplot3 <- renderPlot({
       #data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
-      ggplot(d,aes(x=Datum)) + geom_line(aes(y= Preis),color= "blue") + geom_line(aes(y = data$DeutschlandwPproL),color="red")
+      ggplot(d,aes(x=Datum)) + geom_line(aes(y= Preis),color= "blue") + geom_smooth(aes(y = data$DeutschlandwPproL),color="red") 
     })   
     
     output$boxplot <- renderPlot({
@@ -197,6 +228,13 @@ shinyApp(
       ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Preis, fill = X)) 
 
     })
+    
+    output$differenz <- renderPlot({
+      d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Differenz =(data$Preis / data$Liter) - data$DeutschlandwPproL)
+      ggplot(d,aes(x=Datum)) + geom_point(aes(y= Differenz),color= "blue") + geom_smooth(aes(y=Differenz),color="green") + geom_line(y=0, color ="red")
+      
+    })
+    
     
     output$infobox1 <- renderInfoBox({
       infoBox(
@@ -217,7 +255,7 @@ shinyApp(
         v <- append(v,100*sum(data$Liter[1:i])/data$Km[i])
       }
       d <- data.frame(Kilometer = data$Km, Verbrauch= v)
-      ggplot(d,aes(x = Kilometer)) + geom_line(aes(y = Verbrauch),color="blue") + geom_point(aes(y = Verbrauch),color="red")
+      ggplot(d,aes(x = Kilometer)) + geom_smooth(aes(y = Verbrauch),color="yellow") + geom_point(aes(y = Verbrauch),color="red") 
     })
     
     output$boxplot_verbrauch <- renderPlot({
@@ -297,7 +335,8 @@ shinyApp(
         data2 <- data[,1]
         #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
         d <- data.frame(Datum = data$Datum, Preis = (data$Preis / data$Liter))
-        ggplot(d,aes(x=as.Date(data$Datum, origin = "1970-01-01"), y= Preis)) + geom_line() + geom_point()
+        ggplot(d,aes(x=as.Date(data$Datum, origin = "1970-01-01"), y= Preis)) + geom_smooth(aes(y = Preis)) + geom_point()
+        #ggplot(d,aes(x=Datum)) + geom_point(aes(y=Preis)) + geom_smooth(aes(y = Preis))
         
       })
       
@@ -305,7 +344,7 @@ shinyApp(
         data2 <- data[,1]
         #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
         d <- data.frame(Datum = data$Datum, Preis = data$DeutschlandwPproL)
-        ggplot(d,aes(x=as.Date(data$Datum, origin = "1970-01-01"), y= Preis)) + geom_line() + geom_point()
+        ggplot(d,aes(x=as.Date(data$Datum, origin = "1970-01-01"), y= Preis)) + geom_smooth(aes(y = Preis)) + geom_point()
         
       })
       
@@ -322,6 +361,12 @@ shinyApp(
         d2 <- data.frame(X="deutschlandweit", Preis = data$DeutschlandwPproL)
         d <- rbind(d1,d2)
         ggplot(d, aes(x = X)) + geom_boxplot(aes(y= Preis, fill = X)) 
+        
+      })
+      
+      output$differenz <- renderPlot({
+        d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Differenz =(data$Preis / data$Liter) - data$DeutschlandwPproL)
+        ggplot(d,aes(x=Datum)) + geom_point(aes(y= Differenz),color= "blue") + geom_smooth(aes(y=Differenz),color="green") + geom_line(y=0, color ="red")
         
       })
       
@@ -345,7 +390,8 @@ shinyApp(
           v <- append(v,100*sum(data$Liter[1:i])/data$Km[i])
         }
         d <- data.frame(Kilometer = data$Km, Verbrauch= v)
-        ggplot(d,aes(x = Kilometer)) + geom_line(aes(y = Verbrauch),color="blue") + geom_point(aes(y = Verbrauch),color="red")
+       # ggplot(d,aes(x = Kilometer)) + geom_line(aes(y = Verbrauch),color="blue") + geom_point(aes(y = Verbrauch),color="red")
+        ggplot(d,aes(x = Kilometer)) + geom_smooth(aes(y = Verbrauch),color="yellow") + geom_point(aes(y = Verbrauch),color="red") 
       })
       
       output$boxplot_verbrauch <- renderPlot({

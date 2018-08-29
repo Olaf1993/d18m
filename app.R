@@ -34,9 +34,11 @@ shinyApp(
     
     navbarPage("Menu",
                tabPanel("Eingabe",
-                        mainPanel("Geben Sie Daten ein.",
+                        mainPanel("Willkommen.",
                                   
+                                  tags$b("Gib hier nach jedem Tanken die Daten ein!"),
                                   
+                                  tags$body("Wann hast du getankt? Wie viel hast du getankt? Was hast du bezahlt? Wie war zu diesem Zeitpunkt der deutschlandweite Durchschnittspreis pro Liter Diesel? Wie ist der aktuelle Kilometerstand des Autos?"),
                                   
                                   #textInput("Datum", "Datum", ""),
                                   dateInput("Datum","Datum",Sys.Date(),"2000-01-01",Sys.Date(),format = "dd.mm.yyyy",NULL, weekstart = 0, language = "de", width= NULL ),
@@ -52,6 +54,9 @@ shinyApp(
                ) ,
                
                tabPanel("Datenbank",
+                        
+                        tags$b("Meine Tankdatenbank."),
+                        tags$body("Hier werden alle Einträge gespeichert."),
                         tabsetPanel(
                           tabPanel("Tankdaten",
                                  
@@ -78,6 +83,8 @@ shinyApp(
                         tabsetPanel(
                           
                           tabPanel("Preis pro Liter",
+                                   
+                                   tags$b("Was ich beim Tanken für einen liter Diesel bezahlt habe:" ),
                                    plotOutput("dbplot" ,
                                               click = "plot_click",
                                               dblclick = "plot_dbclick",
@@ -89,6 +96,10 @@ shinyApp(
                                    
                           ),
                           tabPanel("Preis pro Liter deutschlandweit",
+                                   
+                                  
+                                   tags$b("Was war der deutschlandweite Durschschnitspreis pro Liter Diesel?" ),
+                                   
                                    plotOutput("dbplot2" ,
                                               click = "plot_click",
                                               dblclick = "plot_dbclick",
@@ -99,6 +110,9 @@ shinyApp(
                           ),
                           
                           tabPanel("Vergleich",
+                                   
+                                  
+                                   tags$b("Deutschlandweiter Durchschnittspreis(rot) und mein getankter Preis(blau) im Vergleich." ),
                                    plotOutput("dbplot3" ,
                                               click = "plot_click",
                                               dblclick = "plot_dbclick",
@@ -108,6 +122,11 @@ shinyApp(
                                    verbatimTextOutput("info3")
                           ),
                           tabPanel("Differenz ",
+                                   
+                                   tags$b(" Wann war ich über/unter dem deutschlandweiten Preis?" ),
+                                   
+                                   tags$body("Das Schaubild zeigt die Differenz Marktpreis MINUS mein Preis. Sind die Punkte unter der roten Null-Linie, so habe ich unter dem deutschlandweiten Durchschnittspreis getankt."),
+                                   
                                    plotOutput("differenz" ,
                                               click = "plot_click",
                                               dblclick = "plot_dbclick",
@@ -118,6 +137,9 @@ shinyApp(
                                    verbatimTextOutput("differenztext")
                           ),
                           tabPanel("Boxplot",
+                                   
+                                  
+                                   tags$b("Boxplot: Mein persönlicher Preis pro Liter und der deutschlandweite Durchschnittspreis:"),
                                    plotOutput("boxplot"
                                               )
                                  # verbatimTextOutput("infos_boxplot")
@@ -135,6 +157,9 @@ shinyApp(
                ),
                
                tabPanel("Verbrauch",
+                        tags$b("Wie ist meine Fahrweise?"),
+                        tags$body("Verbrauch in Liter pro 100 Kilometer in Abhängigkeit zum Gesamtkilometerstand des Autos."),
+                        
                         tabsetPanel(
                           tabPanel("Verlauf",
                             plotOutput("verbrauchplot")
@@ -146,6 +171,10 @@ shinyApp(
                ),
                
                tabPanel("weitere Kosten",
+                        
+                        tags$body("Alle Kosten, die das Auto verursacht im Verhältnis. Einmal mit und einmal ohne Dieselkosten."),
+                        tags$b("Was kostet mich am meisten?"),
+                        
                         tabsetPanel(
                           tabPanel("Diagramm",
                                    plotOutput("kostenkreisdiagramm"),
@@ -202,8 +231,8 @@ shinyApp(
       data2 <- data[,1]
       #plot(as.Date(as.numeric(data[,1]),"1970-01-01"),data$Preis / data$Liter)
       d <- data.frame(Datum =as.Date(data$Datum, origin = "1970-01-01"), Preis = (data$Preis / data$Liter))
-      ggplot(d,aes(x=Datum)) + geom_point(aes(y=Preis)) + geom_smooth(aes(y = Preis))
-      
+      ggplot(d,aes(x=Datum)) + geom_point(aes(y=Preis)) + geom_smooth(aes(y = Preis)) 
+     
     })
     
     output$dbplot2 <- renderPlot({

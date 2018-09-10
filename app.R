@@ -447,6 +447,23 @@ shinyApp(
         pie(eur,kost,main="Kosten inklusive Tankkosten")
       })
       
+      
+      output$differenztext <- renderText({
+        
+        
+        a <-  sum(data$Preis)-sum(data$DeutschlandwPproL * data$Liter) 
+        if (a < 0){
+          b <- -1*a
+          paste ("Nichts, ich hätte soviel mehr bezahlt:", b)
+        }
+        else 
+        {
+          paste("Einsparung",a)
+        }
+        
+      })
+      
+      
       #set fields to defaul values
       reset("Datum")
       reset("Liter")

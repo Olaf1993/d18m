@@ -46,6 +46,7 @@ shinyApp(
                                   #checkboxInput("lit", "I've built a Shiny app in R before", FALSE),
                                   textInput("Preis", "Gesamtpreis", ""),
                                   textInput("DeutschlandwPproL","Deutschlandweiter Preis pro Liter","0"),
+                                  tags$a(href="https://www.google.de/search?q=dieselpreis+deutschland+heute","Hier den aktuellen Durchschnitspreis für Deutschland ermitteln."),
                                   textInput("Km","Kilometerstand", ""),
                                   actionButton("submit", "Speichern")
                                   
@@ -84,7 +85,7 @@ shinyApp(
                           
                           tabPanel("Preis pro Liter",
                                    
-                                   tags$b("Was ich beim Tanken für einen liter Diesel bezahlt habe:" ),
+                                   tags$b("Was ich beim Tanken für einen Liter Diesel bezahlt habe:" ),
                                    plotOutput("dbplot" ,
                                               click = "plot_click",
                                               dblclick = "plot_dbclick",
@@ -450,7 +451,7 @@ shinyApp(
       reset("Datum")
       reset("Liter")
       reset("Preis")
-      reset("DeutschlandwPproL")
+      #reset("DeutschlandwPproL")
       
     })
     
